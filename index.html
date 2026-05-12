@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Zebra Health">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest-eds.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <title>Zebra Health — EDS / POTS / MCAS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; width: 100%; background: #0f172a; font-family: -apple-system, sans-serif; }
+    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    #loading {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.5s ease;
+    }
+    .emblem { width: 88px; height: 88px; background: linear-gradient(135deg,#7c3aed,#a78bfa); border-radius: 24px; font-size: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .title { font-family: Georgia,serif; font-size: 26px; font-weight: 300; color: #fff; letter-spacing: 1px; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #94a3b8; margin-bottom: 3px; }
+    .bar-wrap { width: 160px; height: 3px; background: rgba(167,139,250,0.2); border-radius: 2px; margin-top: 32px; overflow: hidden; }
+    .bar { height: 100%; background: linear-gradient(90deg,#7c3aed,#a78bfa); border-radius: 2px; animation: ld 1.6s ease-in-out infinite; }
+    .err { font-size: 12px; color: #f87171; margin-top: 14px; max-width: 280px; text-align: center; padding: 0 20px; display: none; line-height: 1.6; }
+    @keyframes ld { 0%{width:0%;margin-left:0} 50%{width:100%;margin-left:0} 100%{width:0%;margin-left:100%} }
+    #loading.done { opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="emblem">🦓</div>
+    <div class="title">Zebra Health</div>
+    <div class="sub">EDS · POTS · MCAS</div>
+    <div class="bar-wrap"><div class="bar"></div></div>
+    <div class="err" id="err"></div>
+  </div>
+  <div id="root"></div>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Data: plain JS, no Babel needed — loads fast -->
+  <script src="data.js"></script>
+
+  <!-- Babel for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- App components: JSX only, ~140KB instead of 245KB -->
+  <script type="text/babel" src="app.jsx"></script>
+
+  <script>
+    var attempts = 0;
+    function mount() {
+      attempts++;
+      if (typeof ZebraHealth === 'function') {
+        ReactDOM.createRoot(document.getElementById('root'))
+          .render(React.createElement(ZebraHealth));
+        document.getElementById('loading').classList.add('done');
+      } else if (attempts < 80) {
+        setTimeout(mount, 250);
+      } else {
+        var e = document.getElementById('err');
+        e.style.display = 'block';
+        e.textContent = 'App took too long to load. Please refresh.';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(mount, 500);
+    });
+  </script>
+</body>
+</html>
