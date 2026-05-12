@@ -1,0 +1,11 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg-main)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--scrollbar-track)}
+::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border-radius:3px}
+.fade{animation:fi .25s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.light{background:var(--bg-main) !important}
+.light body{background:var(--bg-main)}
+:root{--bg-main:#16213e;--bg-card:rgba(255,255,255,0.16);--bg-header:rgba(22,33,62,0.97);--bg-nav:rgba(22,33,62,0.95);--bg-input:rgba(255,255,255,0.14);--bg-select:#1a2848;--bg-chip:rgba(255,255,255,0.10);--bg-btn-sm:rgba(180,140,255,0.30);--bg-modal:linear-gradient(135deg,#1a2848,#1e2050);--bg-gradient:linear-gradient(135deg,#16213e 0%,#1a2848 50%,#1e2050 100%);--txt:#ffffff;--txt-dim:#ddd8f8;--txt-mute:#b8b0e0;--txt-accent:#c4a8ff;--border:rgba(180,160,255,0.30);--border-input:rgba(180,160,255,0.45);--overlay:rgba(0,0,0,0.75);--scrollbar-track:#16213e;--scrollbar-thumb:#5a4090;--edit-nav-bg:rgba(160,120,255,0.20);--tab-active-border:#c4a8ff;--nav-arrow:#a080e0;--safe:#00b4a0;--caution:#e6920a;--danger:#e03030;--safe-bg:rgba(16,217,196,0.15);--caution-bg:rgba(245,158,11,0.15);--danger-bg:rgba(239,68,68,0.15)}
+.light{--bg-main:#f5f3ff;--bg-card:#ffffff;--bg-header:rgba(255,255,255,0.99);--bg-nav:rgba(255,255,255,0.99);--bg-input:#ffffff;--bg-select:#f5f3ff;--bg-chip:#f0ecff;--bg-btn-sm:rgba(100,50,200,0.15);--bg-modal:linear-gradient(135deg,#f5f3ff,#ede8ff);--bg-gradient:linear-gradient(160deg,#f5f3ff 0%,#ede8ff 50%,#f5f3ff 100%);--txt:#111111;--txt-dim:#2a1a5a;--txt-mute:#5a4a8a;--txt-accent:#5a0dad;--border:rgba(90,50,180,0.25);--border-input:rgba(90,50,180,0.40);--overlay:rgba(0,0,0,0.5);--scrollbar-track:#f5f3ff;--scrollbar-thumb:#8860c0;--edit-nav-bg:rgba(90,50,180,0.10);--tab-active-border:#5a0dad;--nav-arrow:#5a0dad;--safe:#00a090;--caution:#c47800;--danger:#c02020;--safe-bg:rgba(5,150,105,0.12);--caution-bg:rgba(217,119,6,0.12);--danger-bg:rgba(220,38,38,0.12)}

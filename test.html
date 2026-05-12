@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState } = React;
+function App() {
+  const [n, setN] = useState(0);
+  return <div style={{padding:40,fontFamily:'sans-serif'}}>
+    <h1 style={{color:'purple'}}>✦ Zebra Health Test</h1>
+    <p>If you can see this, Babel and React are working.</p>
+    <button onClick={()=>setN(n+1)}>Clicked {n} times</button>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
