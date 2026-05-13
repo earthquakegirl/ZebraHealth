@@ -113,6 +113,7 @@ function ZebraHealth() {
 
   // Nav
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [tabs,      setTabs]      = useState(DEFAULT_TABS);
 
 
 
