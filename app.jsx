@@ -379,8 +379,8 @@ function ZebraHealth() {
   const potsDiff = (potsLying && potsSt1) ? parseInt(potsSt1)-parseInt(potsLying) : null;
   const potsResult = potsDiff===null ? null
     : potsDiff>=40 ? {text:"Significant POTS criteria met (40+ bpm rise)", color:"#ef4444"}
-    : potsDiff>=30 ? {text:"POTS criteria met (30+ bpm rise)", color:"#f97316"}
-    : potsDiff>=20 ? {text:"Borderline orthostatic (20-29 bpm rise)", color:"#f97316"}
+    : potsDiff>=30 ? {text:"POTS criteria met (30+ bpm rise)", color:"#38bdf8"}
+    : potsDiff>=20 ? {text:"Borderline orthostatic (20-29 bpm rise)", color:"#38bdf8"}
     : {text:"Mild rise ("+potsDiff+" bpm) — within range", color:"#10d9c4"};
   const pemRisk = lcSyms.length>=4 || lcFatigue>=8 || (lcAtHR && lcHrPeak && parseInt(lcHrPeak)>parseInt(lcAtHR));
   const lcAtResult = (lcAtAge && lcAtRest) ? Math.round(parseInt(lcAtRest)+(220-parseInt(lcAtAge)-parseInt(lcAtRest))*0.50) : null;
@@ -569,7 +569,7 @@ function ZebraHealth() {
           </button>
           <div style={{fontFamily:"sans-serif",fontSize:13,color:"var(--txt-dim)",textAlign:"right"}}>
             <div>{today}</div>
-            {refillsSoon.length > 0 && <div style={{color:"#f97316",fontSize:12}}>⚠ {refillsSoon.length} refill(s) due soon</div>}
+            {refillsSoon.length > 0 && <div style={{color:"#38bdf8",fontSize:12}}>⚠ {refillsSoon.length} refill(s) due soon</div>}
           </div>
         </div>
       </div>
@@ -639,9 +639,9 @@ function ZebraHealth() {
               ))}
             </div>
             {refillsSoon.length > 0 && (
-              <Alert color="#f97316">
-                <T size={14} color="#f97316" weight={600} style={{marginBottom:6}}>⚠ Refills Due Within 14 Days</T>
-                {refillsSoon.map(m=><T key={m.id} size={13} color="#f97316">• {m.name} {m.dose} — {m.refill}</T>)}
+              <Alert color="#38bdf8">
+                <T size={14} color="#38bdf8" weight={600} style={{marginBottom:6}}>⚠ Refills Due Within 14 Days</T>
+                {refillsSoon.map(m=><T key={m.id} size={13} color="#38bdf8">• {m.name} {m.dose} — {m.refill}</T>)}
               </Alert>
             )}
             <Row>
@@ -691,14 +691,14 @@ function ZebraHealth() {
                   {COND_SYMPTOMS[cond].map(s=>{
                     const active=symptoms.includes(s.id);
                     return (
-                      <div key={s.id} onClick={()=>toggleSym(s.id)}
+                      <div key={s.id} onClick={function(){toggleSym(s.id);}}
                         style={{display:"flex",alignItems:"center",gap:5,padding:"5px 11px",borderRadius:20,cursor:"pointer",
                           border:"1.5px solid "+(active?color:"var(--border)"),
                           background:active?color+"25":"var(--bg-card)",transition:"all 0.15s"}}>
                         <span style={{fontSize:13}}>{s.icon}</span>
                         <span style={{fontFamily:"sans-serif",fontSize:12,fontWeight:600,color:active?color:"var(--txt-dim)"}}>{s.name}</span>
                         {active && <span style={{fontSize:10,color:color}}>✓</span>}
-                        <span onClick={e=>{e.stopPropagation();setSelSym(selSym&&selSym.id===s.id?null:s);}}
+                        <span onClick={function(e){e.stopPropagation();setSelSym(selSym&&selSym.id===s.id?null:s);}}
                           style={{fontSize:10,color:"var(--txt-mute)",cursor:"pointer",marginLeft:2,textDecoration:"underline"}}>info</span>
                       </div>
                     );
@@ -710,15 +710,15 @@ function ZebraHealth() {
             <Card style={{marginTop:8}}>
               <SubH>+ Add Custom Symptom</SubH>
               <div style={{display:"flex",gap:8,marginBottom:8}}>
-                <Inp value={customSymInput||""} onChange={e=>setCustomSymInput(e.target.value)} placeholder="Describe your symptom..." />
-                <Sel value={customSymSev||"moderate"} onChange={e=>setCustomSymSev(e.target.value)}>
+                <Inp value={customSymInput||""} onChange={function(e){setCustomSymInput(e.target.value);}} placeholder="Describe your symptom..." />
+                <Sel value={customSymSev||"moderate"} onChange={function(e){setCustomSymSev(e.target.value);}}>
                   <option value="mild">Mild</option>
                   <option value="moderate">Moderate</option>
                   <option value="severe">Severe</option>
                 </Sel>
               </div>
-              <Inp value={customSymNotes||""} onChange={e=>setCustomSymNotes(e.target.value)} placeholder="Notes (optional)..." style={{marginBottom:10}} />
-              <Btn onClick={()=>{
+              <Inp value={customSymNotes||""} onChange={function(e){setCustomSymNotes(e.target.value);}} placeholder="Notes (optional)..." style={{marginBottom:10}} />
+              <Btn onClick={function(){
                 if(!(customSymInput||"").trim()) return;
                 var entry={id:"custom_"+Date.now(),name:(customSymInput).trim(),severity:customSymSev||"moderate",notes:customSymNotes||"",date:new Date().toLocaleDateString(),custom:true};
                 setCustomSymptoms(function(prev){return [entry].concat(prev||[]);});
@@ -746,7 +746,7 @@ function ZebraHealth() {
                 onClick={()=>setSelSym(null)}>
                 <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg-modal)",borderRadius:"20px 20px 0 0",padding:28,width:"100%",maxWidth:600,maxHeight:"80vh",overflowY:"auto"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                    <T size={20} weight={700} color={condColor(selSym.cond||"EDS")} style={{fontFamily:"serif"}}>{selSym.icon} {selSym.name}</T>
+                    <T size={20} weight={700} color="var(--txt-accent)" style={{fontFamily:"serif"}}>{selSym.icon} {selSym.name}</T>
                     <Btn v="sm" onClick={()=>setSelSym(null)}>✕ Close</Btn>
                   </div>
                   {selSym.causes && <div style={{marginBottom:14}}><SubH>Causes</SubH>{selSym.causes.map(function(c,i){return <T key={i} size={13} style={{marginBottom:4}}>• {c}</T>;})}</div>}
@@ -840,7 +840,7 @@ function ZebraHealth() {
                         <T size={15} weight={600} color="var(--txt-accent)">{m.name} <span style={{fontWeight:400,fontSize:13,color:"var(--txt-mute)"}}>{m.dose}</span></T>
                         <T size={13} style={{marginTop:3}}>{m.freq}{m.cat?" · "+m.cat:""}</T>
                         {m.notes && <T size={12} color="var(--txt-mute)" style={{marginTop:2}}>{m.notes}</T>}
-                        <T size={12} color={days<=0?"#ef4444":days<=7?"#ef4444":days<=14?"#f97316":"#10d9c4"} style={{marginTop:4}}>
+                        <T size={12} color={days<=0?"#ef4444":days<=7?"#ef4444":days<=14?"#38bdf8":"#10d9c4"} style={{marginTop:4}}>
                           {days<=0?"⚠ Refill OVERDUE":"Refill in "+days+" days ("+m.refill+")"}
                         </T>
                       </div>
@@ -1158,7 +1158,7 @@ function ZebraHealth() {
                   <div style={{marginBottom:10}}>
                     <T size={11} color="var(--txt-mute)" style={{textTransform:"uppercase",letterSpacing:"0.7px",marginBottom:4}}>Reaction severity</T>
                     <div style={{display:"flex",gap:6}}>
-                      {[["none","None","#10d9c4"],["mild","Mild","#f97316"],["moderate","Moderate","#f97316"],["severe","Severe","#ef4444"]].map(([val,label,col])=>(
+                      {[["none","None","#10d9c4"],["mild","Mild","#38bdf8"],["moderate","Moderate","#38bdf8"],["severe","Severe","#ef4444"]].map(([val,label,col])=>(
                         <button key={val} onClick={()=>setNewFoodEntry({...newFoodEntry,severity:val})} style={{
                           flex:1,padding:"7px 4px",borderRadius:8,border:"1px solid "+(newFoodEntry.severity===val?col:"var(--border)"),
                           background:newFoodEntry.severity===val?col+"22":"transparent",
@@ -1184,7 +1184,7 @@ function ZebraHealth() {
                   <div>
                     <T size={11} color="var(--txt-mute)" style={{textTransform:"uppercase",letterSpacing:"0.7px",marginBottom:10}}>{foodLog.length} entries</T>
                     {foodLog.map(entry=>{
-                      const sevColor = entry.severity==="none"?"#10d9c4":entry.severity==="mild"?"#f97316":entry.severity==="moderate"?"#f97316":"#ef4444";
+                      const sevColor = entry.severity==="none"?"#10d9c4":entry.severity==="mild"?"#38bdf8":entry.severity==="moderate"?"#38bdf8":"#ef4444";
                       return (
                         <Card key={entry.id} style={{marginBottom:10,borderLeft:"3px solid "+sevColor}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
@@ -1244,13 +1244,13 @@ function ZebraHealth() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
                   {YOGA.filter(y=>(yogaCat==="All"||y.cat===yogaCat)&&(yogaCond==="All"||y.conds.includes(yogaCond))).map(y=>{
                     const isFav=favorites.includes(y.name);
-                    const catClr=y.cat==="Breathwork"?"#88d0f0":y.cat==="Supine Poses"?"#c4b5fd":y.cat==="Seated Poses"?"var(--txt-accent)":y.cat==="Restorative Poses"?"#10d9c4":y.cat==="Gentle Movement"?"#f97316":"#fb923c";
+                    const catClr=y.cat==="Breathwork"?"#88d0f0":y.cat==="Supine Poses"?"#c4b5fd":y.cat==="Seated Poses"?"var(--txt-accent)":y.cat==="Restorative Poses"?"#10d9c4":y.cat==="Gentle Movement"?"#38bdf8":"#fb923c";
                     return (
                       <Card key={y.name} style={{borderColor:isFav?"rgba(245,208,80,0.50)":"var(--border)"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
                           <span style={{fontFamily:"sans-serif",fontSize:10,color:catClr,background:catClr+"18",border:"1px solid "+catClr+"30",borderRadius:100,padding:"2px 8px",textTransform:"uppercase",letterSpacing:"0.5px"}}>{y.cat}</span>
                           <button onClick={()=>setFavorites(f=>isFav?f.filter(n=>n!==y.name):[...f,y.name])}
-                            style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:isFav?"#f97316":"#6850a0",lineHeight:1}}>
+                            style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:isFav?"#38bdf8":"#6850a0",lineHeight:1}}>
                             {isFav?"★":"☆"}
                           </button>
                         </div>
@@ -1262,7 +1262,7 @@ function ZebraHealth() {
                         </div>
                         <T size={13} style={{marginBottom:8,lineHeight:1.6}}>{y.benefits}</T>
                         {y.contra && !y.contra.startsWith("None") && (
-                          <T size={11} color="#f97316" style={{background:"rgba(249,115,22,0.18)",borderRadius:5,padding:"3px 7px",marginBottom:8}}>⚠ {y.contra}</T>
+                          <T size={11} color="#38bdf8" style={{background:"rgba(56,189,248,0.18)",borderRadius:5,padding:"3px 7px",marginBottom:8}}>⚠ {y.contra}</T>
                         )}
                         <Btn v="sm" style={{fontSize:12}} onClick={()=>setSelYoga(y)}>View {yogaSteps(y).length} steps →</Btn>
                       </Card>
@@ -1673,8 +1673,8 @@ function ZebraHealth() {
 
             {resTab === "clinics" && (
               <div>
-                <Alert color="#f97316" style={{marginBottom:14}}>
-                  <T size={13} color="#f97316">⚠ Verified March 2026. For the full current EDS Society-designated centers list visit ehlers-danlos.com/core/current-cne/ — for POTS specialists visit dysautonomiainternational.org. Always verify availability directly.</T>
+                <Alert color="#38bdf8" style={{marginBottom:14}}>
+                  <T size={13} color="#38bdf8">⚠ Verified March 2026. For the full current EDS Society-designated centers list visit ehlers-danlos.com/core/current-cne/ — for POTS specialists visit dysautonomiainternational.org. Always verify availability directly.</T>
                 </Alert>
                 <Inp value={clinicSearch} onChange={e=>setClinicSearch(e.target.value)} placeholder="Search by name, city, or keyword..." />
                 <Label>Country</Label>
@@ -1955,7 +1955,7 @@ function ZebraHealth() {
                       <SubH>Energy Capacity Over Time</SubH>
                       <div style={{display:"flex",alignItems:"flex-end",gap:3,height:80,marginBottom:8}}>
                         {[...lcRecovery].reverse().slice(-16).map(e=>(
-                          <div key={e.id} style={{flex:1,borderRadius:"3px 3px 0 0",background:e.pct>60?"#10d9c4":e.pct>30?"#f97316":"#ef4444",height:Math.max(e.pct*0.8,4)+"%",minHeight:4}} />
+                          <div key={e.id} style={{flex:1,borderRadius:"3px 3px 0 0",background:e.pct>60?"#10d9c4":e.pct>30?"#38bdf8":"#ef4444",height:Math.max(e.pct*0.8,4)+"%",minHeight:4}} />
                         ))}
                       </div>
                       <T size={11} color="var(--txt-mute)">Last {Math.min(lcRecovery.length,16)} entries · Green above 60% · Yellow 30-59% · Red below 30%</T>
@@ -1968,7 +1968,7 @@ function ZebraHealth() {
                           {e.notes && <T size={13} color="var(--txt-dim)" style={{fontStyle:"italic"}}>{e.notes}</T>}
                         </div>
                         <div style={{textAlign:"center"}}>
-                          <T size={28} color={e.pct>60?"#10d9c4":e.pct>30?"#f97316":"#ef4444"} style={{fontFamily:"serif",fontWeight:300}}>{e.pct}%</T>
+                          <T size={28} color={e.pct>60?"#10d9c4":e.pct>30?"#38bdf8":"#ef4444"} style={{fontFamily:"serif",fontWeight:300}}>{e.pct}%</T>
                           <T size={11} color="var(--txt-mute)">energy</T>
                         </div>
                       </Card>
@@ -2052,7 +2052,7 @@ function ZebraHealth() {
                   const today = new Date();
                   const dayOfCycle = Math.floor((today - start) / 86400000) + 1;
                   const phaseName = dayOfCycle <= 5 ? "Menstruation" : dayOfCycle <= 13 ? "Follicular" : dayOfCycle <= 16 ? "Ovulation" : dayOfCycle <= parseInt(cycle) ? "Luteal" : "Late / Next period due";
-                  const phaseColor = dayOfCycle <= 5 ? "#ef4444" : dayOfCycle <= 13 ? "#f97316" : dayOfCycle <= 16 ? "#f472b6" : "#a78bfa";
+                  const phaseColor = dayOfCycle <= 5 ? "#ef4444" : dayOfCycle <= 13 ? "#38bdf8" : dayOfCycle <= 16 ? "#f472b6" : "#a78bfa";
                   const phaseDesc = dayOfCycle <= 5 ? "Rest and restore. Highest inflammation phase." : dayOfCycle <= 13 ? "Energy rising. Gradual reintroduction of gentle movement." : dayOfCycle <= 16 ? "Estrogen peaks — mast cells most reactive. Watch for flares." : dayOfCycle <= parseInt(cycle) ? "Progesterone phase. Symptoms may worsen as it drops." : "Period due soon. Low-histamine diet, rest, prepare.";
                   const nextPeriod = new Date(start);
                   nextPeriod.setDate(nextPeriod.getDate() + parseInt(cycle));
@@ -2085,7 +2085,7 @@ function ZebraHealth() {
                           {Array.from({length:parseInt(cycle)}).map(function(_,i){
                             const d = i+1;
                             const isToday = d === dayOfCycle;
-                            const col = d<=5?"#ef4444":d<=13?"#f97316":d<=16?"#f472b6":"#a78bfa";
+                            const col = d<=5?"#ef4444":d<=13?"#38bdf8":d<=16?"#f472b6":"#a78bfa";
                             return (
                               <div key={d} title={"Day "+d} style={{
                                 flex:1,height:isToday?20:12,borderRadius:2,
@@ -2098,7 +2098,7 @@ function ZebraHealth() {
                           })}
                         </div>
                         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                          {[["#ef4444","Days 1-5 Menstruation"],["#f97316","Days 6-13 Follicular"],["#f472b6","Days 14-16 Ovulation"],["#a78bfa","Days 17-28 Luteal"]].map(function([col,lbl]){return (
+                          {[["#ef4444","Days 1-5 Menstruation"],["#38bdf8","Days 6-13 Follicular"],["#f472b6","Days 14-16 Ovulation"],["#a78bfa","Days 17-28 Luteal"]].map(function([col,lbl]){return (
                             <div key={lbl} style={{display:"flex",alignItems:"center",gap:4}}>
                               <div style={{width:10,height:10,borderRadius:2,background:col}} />
                               <T size={10} color="var(--txt-mute)">{lbl}</T>
@@ -2194,7 +2194,7 @@ function ZebraHealth() {
                   <div>
                     <SubH>Symptom History</SubH>
                     {cycleSymLog.map(function(e){
-                      const sevColor = e.severity==="none"?"#10d9c4":e.severity==="mild"?"#f97316":e.severity==="moderate"?"#f97316":"#ef4444";
+                      const sevColor = e.severity==="none"?"#10d9c4":e.severity==="mild"?"#38bdf8":e.severity==="moderate"?"#38bdf8":"#ef4444";
                       return (
                         <Card key={e.id} style={{marginBottom:8,borderLeft:"3px solid "+sevColor}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
@@ -2276,7 +2276,7 @@ function ZebraHealth() {
                 </Card>
                 {[
                   {phase:"Days 1-5 — Menstruation",color:"#ef4444",icon:"🔴",diet:"Strictly low-histamine. Magnesium glycinate for cramps. Anti-inflammatory foods. Avoid alcohol completely.",yoga:"Restorative only — Supta Baddha Konasana, Yoga Nidra, Supported Savasana. No inversions during heavy flow.",mcas:"Highest mast cell reactivity of the cycle. Increase antihistamines if your protocol allows. Avoid triggers.",general:"Rest is a clinical prescription, not laziness. This is the highest inflammation phase. Protect your energy envelope."},
-                  {phase:"Days 6-13 — Follicular",color:"#f97316",icon:"🟠",diet:"Gradually liberalize diet as symptoms ease. Introduce fermented foods cautiously if tolerated. Increase protein for energy.",yoga:"Gradually reintroduce gentle active practices. Good time for breathwork and seated practices. Longer Nidra optional.",mcas:"Symptom burden typically lighter. Good time for new activities within your envelope. Watch for ovulation surge at day 12-13.",general:"Energy and cognitive function often best in this phase. Schedule demanding tasks and appointments here when possible."},
+                  {phase:"Days 6-13 — Follicular",color:"#38bdf8",icon:"🟠",diet:"Gradually liberalize diet as symptoms ease. Introduce fermented foods cautiously if tolerated. Increase protein for energy.",yoga:"Gradually reintroduce gentle active practices. Good time for breathwork and seated practices. Longer Nidra optional.",mcas:"Symptom burden typically lighter. Good time for new activities within your envelope. Watch for ovulation surge at day 12-13.",general:"Energy and cognitive function often best in this phase. Schedule demanding tasks and appointments here when possible."},
                   {phase:"Days 14-16 — Ovulation",color:"#f472b6",icon:"🩷",diet:"Low-histamine diet even if feeling well — estrogen peaks here and mast cells are most reactive. Avoid alcohol.",yoga:"Shorter, gentler practices even if energy feels high. This is not the time to push. Monitor for flushing and hives.",mcas:"Estrogen peak = highest mast cell degranulation risk. Antihistamines as per your protocol. Watch for flushing, hives, GI symptoms.",general:"Many women feel good here but overdo it — the estrogen high is real but the mast cell reactivity is also highest. Pace carefully."},
                   {phase:"Days 17-28 — Luteal",color:"#a78bfa",icon:"🟣",diet:"Strictest low-histamine phase. Magnesium glycinate daily. No alcohol. Increase quercetin-rich foods if tolerated.",yoga:"Yoga Nidra daily. Reduce exertion progressively. Restorative from day 24 onward. Prioritize sleep.",mcas:"Progesterone rises then falls — the fall triggers histamine release. Symptoms typically worsen days 21-28. Prepare your protocol.",general:"Prepare your environment for the menstrual phase before it arrives. Reduce commitments in the final 5 days if possible."},
                 ].map(function(p){return (
@@ -2581,8 +2581,8 @@ function ZebraHealth() {
               <T size={13} color="var(--txt-dim)">{selYoga.benefits}</T>
             </div>
             {selYoga.contra && !selYoga.contra.startsWith("None") && (
-              <div style={{background:"rgba(249,115,22,0.18)",border:"1px solid rgba(249,115,22,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:14}}>
-                <T size={12} color="#f97316">⚠ {selYoga.contra}</T>
+              <div style={{background:"rgba(56,189,248,0.18)",border:"1px solid rgba(56,189,248,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:14}}>
+                <T size={12} color="#38bdf8">⚠ {selYoga.contra}</T>
               </div>
             )}
             {selYoga.mods && (
