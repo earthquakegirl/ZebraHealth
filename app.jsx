@@ -1,4 +1,3 @@
-
 // Zebra Health EDS Tracker — app.jsx v2
 function Card({ children, style, onClick }) {
   return (
@@ -564,9 +563,9 @@ function ZebraHealth() {
         </div>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-            style={{background:"linear-gradient(160deg,#f8fafc 0%,#f0f4ff 50%,#f8fafc 100%)",border:"2px solid "+("rgba(124,58,237,0.5)"),borderRadius:20,fontSize:18,lineHeight:1,width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",padding:"5px 12px",cursor:"pointer",fontFamily:"sans-serif",fontSize:18,lineHeight:1,color:"var(--txt-accent)",transition:"all 0.2s"}}>
-            {"🌙"}
-          </button>
+
+
+
           <div style={{fontFamily:"sans-serif",fontSize:13,color:"var(--txt-dim)",textAlign:"right"}}>
             <div>{today}</div>
             {refillsSoon.length > 0 && <div style={{color:"#0284c7",fontSize:12}}>⚠ {refillsSoon.length} refill(s) due soon</div>}
