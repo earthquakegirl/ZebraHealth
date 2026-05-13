@@ -114,9 +114,9 @@ function ZebraHealth() {
   // Nav
   const [activeTab, setActiveTab] = useState("dashboard");
 
-    try { var t = localStorage.getItem("zheds_theme"); return t !== "light"; } catch(e) { return true; }
-  });
-  const [tabs,      setTabs]      = useState(DEFAULT_TABS);
+
+
+
   const [editNav,   setEditNav]   = useState(false);
 
   // Daily log
