@@ -1,4 +1,3 @@
-
 function Card({ children, style, onClick }) {
   return (
     <div onClick={onClick} style={{
@@ -13,7 +12,7 @@ function Btn({ children, onClick, v, style, disabled }) {
   const vs = {
     p:   { background:"linear-gradient(135deg,#7c3aed,#a855f7)", color:"#fff" },
     sm:  { background:"var(--bg-btn-sm)", color:"var(--txt-accent)", fontSize:13, padding:"6px 14px", borderRadius:8 },
-    del: { background:"rgba(200,80,80,0.25)", color:"#ef4444", fontSize:12, padding:"5px 12px", borderRadius:7 },
+    del:{ background:"#dc2626", color:"#ffffff", fontSize:12, padding:"6px 14px", borderRadius:8, border:"none", fontWeight:700, cursor:"pointer" },
     chip:{ borderRadius:100, fontSize:12, padding:"5px 12px", background:"var(--bg-chip)", border:"1.5px solid var(--border)", color:"var(--txt-mute)" },
   };
   return <button onClick={onClick} disabled={disabled} style={{ ...base, ...(vs[v||"p"]), ...style }}>{children}</button>;
@@ -97,7 +96,7 @@ function Chips({ items, selected, onSelect, getColor }) {
 }
 
 function condColor(c) {
-  return c==="EDS"?"#c4b5fd":c==="POTS"?"#06b6d4":"#f87171";
+  return c==="EDS"?"#c4b5fd":c==="POTS"?"#06b6d4":c==="MCAS"?"#fb923c":c==="WOMENS"?"#f472b6":c==="LC"?"#34d399":"#94a3b8";
 }
 
 function yogaSteps(y) {
@@ -126,8 +125,12 @@ function ZebraHealth() {
   const [sleepH,    setSleepH]    = useState("");
   const [sleepQ,    setSleepQ]    = useState(5);
   const [hydration, setHydration] = useState(0);
-  const [period,    setPeriod]    = useState("");
-  const [cycle,     setCycle]     = useState(28);
+  const [period,      setPeriod]      = useState("");
+  const [cycle,       setCycle]       = useState(28);
+  const [cycleLog,    setCycleLog]    = useState([]);
+  const [cycleSym,    setCycleSym]    = useState({date:"",day:"",symptoms:"",severity:"none",notes:"",mood:"",energy:""});
+  const [cycleSymLog, setCycleSymLog] = useState([]);
+  const [cycleView,   setCycleView]   = useState("tracker");
   const [notes,     setNotes]     = useState("");
   const [weather,   setWeather]   = useState("");
 
@@ -233,7 +236,13 @@ function ZebraHealth() {
   const [journalForm,    setJournalForm]    = useState({title:"", body:"", entryDate:new Date().toISOString().split("T")[0]});
 
   // Modal
-  const [selSym, setSelSym] = useState(null);
+  const [selSym,         setSelSym]         = useState(null);
+  const [customSymInput, setCustomSymInput] = useState("");
+  const [customSymNotes, setCustomSymNotes] = useState("");
+  const [customSymSev,   setCustomSymSev]   = useState("moderate");
+  const [customSymptoms, setCustomSymptoms] = useState([]);
+  const [editMedId,      setEditMedId]      = useState(null);
+  const [editMedData,    setEditMedData]    = useState({});
 
 
   // ── LOCAL STORAGE: Load saved data on app start ─────────────
@@ -248,6 +257,8 @@ function ZebraHealth() {
       if (saved.sleepQ !== undefined) setSleepQ(saved.sleepQ);
       if (saved.hydration !== undefined) setHydration(saved.hydration);
       if (saved.period !== undefined) setPeriod(saved.period);
+      if (saved.cycleLog !== undefined) setCycleLog(saved.cycleLog);
+      if (saved.cycleSymLog !== undefined) setCycleSymLog(saved.cycleSymLog);
       if (saved.cycle !== undefined) setCycle(saved.cycle);
       if (saved.notes !== undefined) setNotes(saved.notes);
       if (saved.weather !== undefined) setWeather(saved.weather);
@@ -277,6 +288,7 @@ function ZebraHealth() {
       if (saved.foodLog !== undefined) setFoodLog(saved.foodLog);
       if (saved.activeDiet !== undefined) setActiveDiet(saved.activeDiet);
       if (saved.recFilter !== undefined) setRecFilter(saved.recFilter);
+      if (saved.customSymptoms !== undefined) setCustomSymptoms(saved.customSymptoms);
       if (saved.darkMode !== undefined) setDarkMode(saved.darkMode);
       if (saved.tabs !== undefined) {
         var savedIds = new Set(saved.tabs.map(function(t){ return t.id; }));
@@ -305,6 +317,8 @@ function ZebraHealth() {
       hydration: hydration,
       period: period,
       cycle: cycle,
+      cycleLog: cycleLog,
+      cycleSymLog: cycleSymLog,
       notes: notes,
       weather: weather,
       meds: meds,
@@ -333,10 +347,11 @@ function ZebraHealth() {
       foodLog: foodLog,
       activeDiet: activeDiet,
       recFilter: recFilter,
+      customSymptoms: customSymptoms,
       darkMode: darkMode,
       tabs: tabs,
     });
-  }, [storageReady, symptoms, foodLog, activeDiet, recFilter, darkMode, vitals, energy, sleepH, sleepQ, hydration, period, cycle, notes, weather, meds, appts, potsLying, potsSt1, favorites, programs, session, specs, labs, joints, clinicCountry, clinicOffers, orgCat, lcSyms, lcFatigue, lcFog, lcBreath, lcHrRest, lcHrPeak, lcAtHR, lcAtAge, lcAtRest, lcRecovery, tabs]);
+  }, [storageReady, symptoms, foodLog, activeDiet, recFilter, darkMode, customSymptoms, vitals, energy, sleepH, sleepQ, hydration, period, cycle, notes, weather, meds, appts, potsLying, potsSt1, favorites, programs, session, specs, labs, joints, clinicCountry, clinicOffers, orgCat, lcSyms, lcFatigue, lcFog, lcBreath, lcHrRest, lcHrPeak, lcAtHR, lcAtAge, lcAtRest, lcRecovery, tabs]);
 
   React.useEffect(function() {
     var theme = darkMode ? "dark" : "light";
@@ -364,8 +379,8 @@ function ZebraHealth() {
   const potsDiff = (potsLying && potsSt1) ? parseInt(potsSt1)-parseInt(potsLying) : null;
   const potsResult = potsDiff===null ? null
     : potsDiff>=40 ? {text:"Significant POTS criteria met (40+ bpm rise)", color:"#ef4444"}
-    : potsDiff>=30 ? {text:"POTS criteria met (30+ bpm rise)", color:"#f59e0b"}
-    : potsDiff>=20 ? {text:"Borderline orthostatic (20-29 bpm rise)", color:"#f59e0b"}
+    : potsDiff>=30 ? {text:"POTS criteria met (30+ bpm rise)", color:"#38bdf8"}
+    : potsDiff>=20 ? {text:"Borderline orthostatic (20-29 bpm rise)", color:"#38bdf8"}
     : {text:"Mild rise ("+potsDiff+" bpm) — within range", color:"#10d9c4"};
   const pemRisk = lcSyms.length>=4 || lcFatigue>=8 || (lcAtHR && lcHrPeak && parseInt(lcHrPeak)>parseInt(lcAtHR));
   const lcAtResult = (lcAtAge && lcAtRest) ? Math.round(parseInt(lcAtRest)+(220-parseInt(lcAtAge)-parseInt(lcAtRest))*0.50) : null;
@@ -538,7 +553,7 @@ function ZebraHealth() {
 
 
   return (
-    <div className={darkMode?"dark":"light"} style={{fontFamily:"Georgia,serif",background:darkMode?"linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f1f3d 100%)":"linear-gradient(160deg,#f8f7ff 0%,#ede9fe 50%,#f8f7ff 100%)",minHeight:"100vh",color:darkMode?"#f0ecff":"#1a0a3e",transition:"background 0.3s ease, color 0.3s ease"}}>
+    <div className={darkMode?"dark":"light"} style={{fontFamily:"Georgia,serif",background:darkMode?"linear-gradient(135deg,#1e3a5f 0%,#2d5986 50%,#1e4060 100%)":"linear-gradient(160deg,#f0f7ff 0%,#dbeafe 50%,#f0f7ff 100%)",minHeight:"100vh",color:darkMode?"#f0ecff":"#1a0a3e",transition:"background 0.3s ease, color 0.3s ease"}}>
 
 
       {/* HEADER */}
@@ -554,7 +569,7 @@ function ZebraHealth() {
           </button>
           <div style={{fontFamily:"sans-serif",fontSize:13,color:"var(--txt-dim)",textAlign:"right"}}>
             <div>{today}</div>
-            {refillsSoon.length > 0 && <div style={{color:"#f59e0b",fontSize:12}}>⚠ {refillsSoon.length} refill(s) due soon</div>}
+            {refillsSoon.length > 0 && <div style={{color:"#38bdf8",fontSize:12}}>⚠ {refillsSoon.length} refill(s) due soon</div>}
           </div>
         </div>
       </div>
@@ -624,9 +639,9 @@ function ZebraHealth() {
               ))}
             </div>
             {refillsSoon.length > 0 && (
-              <Alert color="#f59e0b">
-                <T size={14} color="#f59e0b" weight={600} style={{marginBottom:6}}>⚠ Refills Due Within 14 Days</T>
-                {refillsSoon.map(m=><T key={m.id} size={13} color="#f59e0b">• {m.name} {m.dose} — {m.refill}</T>)}
+              <Alert color="#38bdf8">
+                <T size={14} color="#38bdf8" weight={600} style={{marginBottom:6}}>⚠ Refills Due Within 14 Days</T>
+                {refillsSoon.map(m=><T key={m.id} size={13} color="#38bdf8">• {m.name} {m.dose} — {m.refill}</T>)}
               </Alert>
             )}
             <Row>
@@ -663,29 +678,83 @@ function ZebraHealth() {
         {/* SYMPTOMS */}
         {activeTab === "symptoms" && (
           <div className="fade">
-            <H>Symptom Tracker and Education</H>
-            <T size={13} style={{marginBottom:18}}>Tap a symptom to log it. Tap Learn more for causes, relief strategies, and yoga techniques.</T>
-            {[["EDS","#c4b5fd"],["POTS","#06b6d4"],["MCAS","#f87171"]].map(([cond,color])=>(
-              <div key={cond} style={{marginBottom:26}}>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-                  <div style={{width:4,height:24,background:color,borderRadius:2}} />
-                  <T size={19} color={color} style={{fontFamily:"serif"}}>{cond} Symptoms</T>
+            <H>Symptom Tracker</H>
+            <T size={13} style={{marginBottom:18}}>Tap any symptom to log it. Tap info for causes and yoga protocols. Add your own at the bottom.</T>
+
+            {[["EDS","#c4b5fd","Ehlers-Danlos Syndrome"],["POTS","#06b6d4","POTS / Dysautonomia"],["MCAS","#fb923c","Mast Cell Activation"],["WOMENS","#f472b6","Women's Health"],["LC","#34d399","Long COVID"]].map(([cond,color,label])=>(
+              <div key={cond} style={{marginBottom:24}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                  <div style={{width:4,height:20,background:color,borderRadius:2}} />
+                  <T size={16} color={color} weight={700} style={{fontFamily:"serif"}}>{label}</T>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))",gap:10}}>
+                <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
                   {COND_SYMPTOMS[cond].map(s=>{
                     const active=symptoms.includes(s.id);
                     return (
-                      <Card key={s.id} onClick={()=>toggleSym(s.id)} style={{cursor:"pointer",borderColor:active?color:"var(--border)",background:active?color+"18":"var(--bg-card)"}}>
-                        <div style={{fontSize:22,marginBottom:6}}>{s.icon}</div>
-                        <T size={13} weight={500} color={active?color:"var(--txt)"}>{s.name}</T>
-                        {active && <T size={11} color={color} style={{marginTop:3}}>✓ Logged</T>}
-                        <Btn v="sm" style={{marginTop:8,fontSize:11,padding:"4px 10px"}} onClick={e=>{e.stopPropagation();setSelSym(s);}}>Learn more →</Btn>
-                      </Card>
+                      <div key={s.id} onClick={function(){toggleSym(s.id);}}
+                        style={{display:"flex",alignItems:"center",gap:5,padding:"5px 11px",borderRadius:20,cursor:"pointer",
+                          border:"1.5px solid "+(active?color:"var(--border)"),
+                          background:active?color+"25":"var(--bg-card)",transition:"all 0.15s"}}>
+                        <span style={{fontSize:13}}>{s.icon}</span>
+                        <span style={{fontFamily:"sans-serif",fontSize:12,fontWeight:600,color:active?color:"var(--txt-dim)"}}>{s.name}</span>
+                        {active && <span style={{fontSize:10,color:color}}>✓</span>}
+                        <span onClick={function(e){e.stopPropagation();setSelSym(selSym&&selSym.id===s.id?null:s);}}
+                          style={{fontSize:10,color:"var(--txt-mute)",cursor:"pointer",marginLeft:2,textDecoration:"underline"}}>info</span>
+                      </div>
                     );
                   })}
                 </div>
               </div>
             ))}
+
+            <Card style={{marginTop:8}}>
+              <SubH>+ Add Custom Symptom</SubH>
+              <div style={{display:"flex",gap:8,marginBottom:8}}>
+                <Inp value={customSymInput||""} onChange={function(e){setCustomSymInput(e.target.value);}} placeholder="Describe your symptom..." />
+                <Sel value={customSymSev||"moderate"} onChange={function(e){setCustomSymSev(e.target.value);}}>
+                  <option value="mild">Mild</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="severe">Severe</option>
+                </Sel>
+              </div>
+              <Inp value={customSymNotes||""} onChange={function(e){setCustomSymNotes(e.target.value);}} placeholder="Notes (optional)..." style={{marginBottom:10}} />
+              <Btn onClick={function(){
+                if(!(customSymInput||"").trim()) return;
+                var entry={id:"custom_"+Date.now(),name:(customSymInput).trim(),severity:customSymSev||"moderate",notes:customSymNotes||"",date:new Date().toLocaleDateString(),custom:true};
+                setCustomSymptoms(function(prev){return [entry].concat(prev||[]);});
+                setCustomSymInput(""); setCustomSymNotes("");
+              }}>Save</Btn>
+            </Card>
+
+            {(customSymptoms||[]).length > 0 && (
+              <div style={{marginTop:12}}>
+                <SubH>Your Custom Symptoms</SubH>
+                {(customSymptoms||[]).map(function(s){return (
+                  <Card key={s.id} style={{marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div>
+                      <T size={14} weight={600}>{s.name}</T>
+                      <T size={12} color="var(--txt-mute)">{s.severity} · {s.date}{s.notes?" · "+s.notes:""}</T>
+                    </div>
+                    <Btn v="del" onClick={()=>setCustomSymptoms(function(prev){return (prev||[]).filter(function(x){return x.id!==s.id;});})}>Remove</Btn>
+                  </Card>
+                );})}
+              </div>
+            )}
+
+            {selSym && (
+              <div style={{position:"fixed",inset:0,background:"var(--overlay)",zIndex:50,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+                onClick={()=>setSelSym(null)}>
+                <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg-modal)",borderRadius:"20px 20px 0 0",padding:28,width:"100%",maxWidth:600,maxHeight:"80vh",overflowY:"auto"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                    <T size={20} weight={700} color="var(--txt-accent)" style={{fontFamily:"serif"}}>{selSym.icon} {selSym.name}</T>
+                    <Btn v="sm" onClick={()=>setSelSym(null)}>✕ Close</Btn>
+                  </div>
+                  {selSym.causes && <div style={{marginBottom:14}}><SubH>Causes</SubH>{selSym.causes.map(function(c,i){return <T key={i} size={13} style={{marginBottom:4}}>• {c}</T>;})}</div>}
+                  {selSym.relief && <div style={{marginBottom:14}}><SubH>Relief Strategies</SubH>{selSym.relief.map(function(r,i){return <T key={i} size={13} style={{marginBottom:4}}>• {r}</T>;})}</div>}
+                  {selSym.yoga && <div><SubH>Yoga Therapy</SubH><T size={13}>{selSym.yoga}</T></div>}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -742,35 +811,62 @@ function ZebraHealth() {
         {activeTab === "meds" && (
           <div className="fade">
             <H>Medication Manager</H>
-            {meds.map(m=>{
+            {meds.map(function(m) {
               const days=Math.ceil((new Date(m.refill)-new Date())/86400000);
+              const isEditing = editMedId === m.id;
               return (
-                <Card key={m.id} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10}}>
-                  <div>
-                    <T size={15} weight={500} color="var(--txt-accent)">{m.name} <span style={{fontWeight:300,color:"var(--txt-dim)"}}>{m.dose}</span></T>
-                    <T size={13} style={{marginTop:3}}>{m.freq} · <span style={{background:"rgba(140,100,220,0.25)",borderRadius:5,padding:"1px 7px",fontSize:12,color:"var(--txt-dim)"}}>{m.cat}</span></T>
-                    <T size={12} color={days<=0?"#ef4444":days<=7?"#ef4444":days<=14?"#f59e0b":"#10d9c4"} style={{marginTop:5}}>
-                      {days<=0?"⚠ Refill OVERDUE":"Refill in "+days+" days ("+m.refill+")"}
-                    </T>
-                  </div>
-                  <Btn v="del" onClick={()=>setMeds(prev=>prev.filter(x=>x.id!==m.id))}>Remove</Btn>
+                <Card key={m.id} style={{marginBottom:10}}>
+                  {isEditing ? (
+                    <div>
+                      <SubH>Edit Medication</SubH>
+                      <Row>
+                        <div><Label>Name</Label><Inp value={editMedData.name} onChange={e=>setEditMedData(function(d){return {...d,name:e.target.value};})} /></div>
+                        <div><Label>Dose</Label><Inp value={editMedData.dose} onChange={e=>setEditMedData(function(d){return {...d,dose:e.target.value};})} /></div>
+                      </Row>
+                      <Row>
+                        <div><Label>Frequency</Label><Inp value={editMedData.freq} onChange={e=>setEditMedData(function(d){return {...d,freq:e.target.value};})} /></div>
+                        <div><Label>Refill Date</Label><Inp type="date" value={editMedData.refill} onChange={e=>setEditMedData(function(d){return {...d,refill:e.target.value};})} /></div>
+                      </Row>
+                      <Label>Notes</Label>
+                      <Inp value={editMedData.notes||""} onChange={e=>setEditMedData(function(d){return {...d,notes:e.target.value};})} placeholder="Dosage notes, instructions..." style={{marginBottom:10}} />
+                      <div style={{display:"flex",gap:8}}>
+                        <Btn onClick={function(){setMeds(function(prev){return prev.map(function(x){return x.id===m.id?{...x,...editMedData}:x;});});setEditMedId(null);}}>Save Changes</Btn>
+                        <Btn v="sm" onClick={function(){setEditMedId(null);}}>Cancel</Btn>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                      <div style={{flex:1}}>
+                        <T size={15} weight={600} color="var(--txt-accent)">{m.name} <span style={{fontWeight:400,fontSize:13,color:"var(--txt-mute)"}}>{m.dose}</span></T>
+                        <T size={13} style={{marginTop:3}}>{m.freq}{m.cat?" · "+m.cat:""}</T>
+                        {m.notes && <T size={12} color="var(--txt-mute)" style={{marginTop:2}}>{m.notes}</T>}
+                        <T size={12} color={days<=0?"#ef4444":days<=7?"#ef4444":days<=14?"#38bdf8":"#10d9c4"} style={{marginTop:4}}>
+                          {days<=0?"⚠ Refill OVERDUE":"Refill in "+days+" days ("+m.refill+")"}
+                        </T>
+                      </div>
+                      <div style={{display:"flex",gap:6,flexShrink:0,marginLeft:8}}>
+                        <Btn v="sm" onClick={function(){setEditMedId(m.id);setEditMedData({name:m.name,dose:m.dose,freq:m.freq,refill:m.refill,cat:m.cat,notes:m.notes||""});}}>Edit</Btn>
+                        <Btn v="del" onClick={function(){setMeds(function(prev){return prev.filter(function(x){return x.id!==m.id;});});}}>Remove</Btn>
+                      </div>
+                    </div>
+                  )}
                 </Card>
               );
             })}
             <Card style={{marginTop:6}}>
               <SubH>+ Add Medication</SubH>
               <Row>
-                <div><Label>Name</Label><Inp value={newMed.name} onChange={e=>setNewMed(n=>({...n,name:e.target.value}))} placeholder="e.g. Ketotifen" /></div>
-                <div><Label>Dose</Label><Inp value={newMed.dose} onChange={e=>setNewMed(n=>({...n,dose:e.target.value}))} placeholder="e.g. 1mg" /></div>
-                <div><Label>Frequency</Label><Inp value={newMed.freq} onChange={e=>setNewMed(n=>({...n,freq:e.target.value}))} placeholder="Twice daily" /></div>
+                <div><Label>Name</Label><Inp value={newMed.name} onChange={e=>setNewMed(n=>({...n,name:e.target.value}))} /></div>
+                <div><Label>Dose</Label><Inp value={newMed.dose} onChange={e=>setNewMed(n=>({...n,dose:e.target.value}))} /></div>
+                <div><Label>Frequency</Label><Inp value={newMed.freq} onChange={e=>setNewMed(n=>({...n,freq:e.target.value}))} /></div>
                 <div><Label>Refill Date</Label><Inp type="date" value={newMed.refill} onChange={e=>setNewMed(n=>({...n,refill:e.target.value}))} /></div>
               </Row>
               <Label>Category</Label>
               <Sel value={newMed.cat} onChange={e=>setNewMed(n=>({...n,cat:e.target.value}))}>
                 <option value="">Select...</option>
-                {["Antihistamine H1","Antihistamine H2","Mast Cell Stabilizer","Beta Blocker","Fludrocortisone","SSRI/SNRI","Pain Management","Supplement","Rescue/PRN","Other"].map(c=><option key={c} value={c}>{c}</option>)}
+                {["Antihistamine H1","Antihistamine H2","Mast Cell Stabilizer","Beta Blocker","Fludrocortisone","SSRI / SNRI","Sleep Aid","Pain Relief","Supplement","Other"].map(function(c){return <option key={c} value={c}>{c}</option>;})}
               </Sel>
-              <Btn onClick={()=>{if(newMed.name){setMeds(prev=>[...prev,{...newMed,id:Date.now()}]);setNewMed({name:"",dose:"",freq:"",refill:"",cat:""});}}}>Add Medication</Btn>
+              <Btn style={{marginTop:10}} onClick={function(){if(newMed.name){setMeds(function(prev){return [...prev,{...newMed,id:Date.now()}];});setNewMed({name:"",dose:"",freq:"",refill:"",cat:"",notes:""});}}}>Add Medication</Btn>
             </Card>
           </div>
         )}
@@ -1062,7 +1158,7 @@ function ZebraHealth() {
                   <div style={{marginBottom:10}}>
                     <T size={11} color="var(--txt-mute)" style={{textTransform:"uppercase",letterSpacing:"0.7px",marginBottom:4}}>Reaction severity</T>
                     <div style={{display:"flex",gap:6}}>
-                      {[["none","None","#10d9c4"],["mild","Mild","#f59e0b"],["moderate","Moderate","#f59e0b"],["severe","Severe","#ef4444"]].map(([val,label,col])=>(
+                      {[["none","None","#10d9c4"],["mild","Mild","#38bdf8"],["moderate","Moderate","#38bdf8"],["severe","Severe","#ef4444"]].map(([val,label,col])=>(
                         <button key={val} onClick={()=>setNewFoodEntry({...newFoodEntry,severity:val})} style={{
                           flex:1,padding:"7px 4px",borderRadius:8,border:"1px solid "+(newFoodEntry.severity===val?col:"var(--border)"),
                           background:newFoodEntry.severity===val?col+"22":"transparent",
@@ -1088,7 +1184,7 @@ function ZebraHealth() {
                   <div>
                     <T size={11} color="var(--txt-mute)" style={{textTransform:"uppercase",letterSpacing:"0.7px",marginBottom:10}}>{foodLog.length} entries</T>
                     {foodLog.map(entry=>{
-                      const sevColor = entry.severity==="none"?"#10d9c4":entry.severity==="mild"?"#f59e0b":entry.severity==="moderate"?"#f59e0b":"#ef4444";
+                      const sevColor = entry.severity==="none"?"#10d9c4":entry.severity==="mild"?"#38bdf8":entry.severity==="moderate"?"#38bdf8":"#ef4444";
                       return (
                         <Card key={entry.id} style={{marginBottom:10,borderLeft:"3px solid "+sevColor}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
@@ -1148,13 +1244,13 @@ function ZebraHealth() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
                   {YOGA.filter(y=>(yogaCat==="All"||y.cat===yogaCat)&&(yogaCond==="All"||y.conds.includes(yogaCond))).map(y=>{
                     const isFav=favorites.includes(y.name);
-                    const catClr=y.cat==="Breathwork"?"#88d0f0":y.cat==="Supine Poses"?"#c4b5fd":y.cat==="Seated Poses"?"var(--txt-accent)":y.cat==="Restorative Poses"?"#10d9c4":y.cat==="Gentle Movement"?"#f59e0b":"#fb923c";
+                    const catClr=y.cat==="Breathwork"?"#88d0f0":y.cat==="Supine Poses"?"#c4b5fd":y.cat==="Seated Poses"?"var(--txt-accent)":y.cat==="Restorative Poses"?"#10d9c4":y.cat==="Gentle Movement"?"#38bdf8":"#fb923c";
                     return (
                       <Card key={y.name} style={{borderColor:isFav?"rgba(245,208,80,0.50)":"var(--border)"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
                           <span style={{fontFamily:"sans-serif",fontSize:10,color:catClr,background:catClr+"18",border:"1px solid "+catClr+"30",borderRadius:100,padding:"2px 8px",textTransform:"uppercase",letterSpacing:"0.5px"}}>{y.cat}</span>
                           <button onClick={()=>setFavorites(f=>isFav?f.filter(n=>n!==y.name):[...f,y.name])}
-                            style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:isFav?"#f59e0b":"#6850a0",lineHeight:1}}>
+                            style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:isFav?"#38bdf8":"#6850a0",lineHeight:1}}>
                             {isFav?"★":"☆"}
                           </button>
                         </div>
@@ -1166,7 +1262,7 @@ function ZebraHealth() {
                         </div>
                         <T size={13} style={{marginBottom:8,lineHeight:1.6}}>{y.benefits}</T>
                         {y.contra && !y.contra.startsWith("None") && (
-                          <T size={11} color="#f59e0b" style={{background:"rgba(245,158,11,0.18)",borderRadius:5,padding:"3px 7px",marginBottom:8}}>⚠ {y.contra}</T>
+                          <T size={11} color="#38bdf8" style={{background:"rgba(56,189,248,0.18)",borderRadius:5,padding:"3px 7px",marginBottom:8}}>⚠ {y.contra}</T>
                         )}
                         <Btn v="sm" style={{fontSize:12}} onClick={()=>setSelYoga(y)}>View {yogaSteps(y).length} steps →</Btn>
                       </Card>
@@ -1577,8 +1673,8 @@ function ZebraHealth() {
 
             {resTab === "clinics" && (
               <div>
-                <Alert color="#f59e0b" style={{marginBottom:14}}>
-                  <T size={13} color="#f59e0b">⚠ Verified March 2026. For the full current EDS Society-designated centers list visit ehlers-danlos.com/core/current-cne/ — for POTS specialists visit dysautonomiainternational.org. Always verify availability directly.</T>
+                <Alert color="#38bdf8" style={{marginBottom:14}}>
+                  <T size={13} color="#38bdf8">⚠ Verified March 2026. For the full current EDS Society-designated centers list visit ehlers-danlos.com/core/current-cne/ — for POTS specialists visit dysautonomiainternational.org. Always verify availability directly.</T>
                 </Alert>
                 <Inp value={clinicSearch} onChange={e=>setClinicSearch(e.target.value)} placeholder="Search by name, city, or keyword..." />
                 <Label>Country</Label>
@@ -1859,7 +1955,7 @@ function ZebraHealth() {
                       <SubH>Energy Capacity Over Time</SubH>
                       <div style={{display:"flex",alignItems:"flex-end",gap:3,height:80,marginBottom:8}}>
                         {[...lcRecovery].reverse().slice(-16).map(e=>(
-                          <div key={e.id} style={{flex:1,borderRadius:"3px 3px 0 0",background:e.pct>60?"#10d9c4":e.pct>30?"#f59e0b":"#ef4444",height:Math.max(e.pct*0.8,4)+"%",minHeight:4}} />
+                          <div key={e.id} style={{flex:1,borderRadius:"3px 3px 0 0",background:e.pct>60?"#10d9c4":e.pct>30?"#38bdf8":"#ef4444",height:Math.max(e.pct*0.8,4)+"%",minHeight:4}} />
                         ))}
                       </div>
                       <T size={11} color="var(--txt-mute)">Last {Math.min(lcRecovery.length,16)} entries · Green above 60% · Yellow 30-59% · Red below 30%</T>
@@ -1872,7 +1968,7 @@ function ZebraHealth() {
                           {e.notes && <T size={13} color="var(--txt-dim)" style={{fontStyle:"italic"}}>{e.notes}</T>}
                         </div>
                         <div style={{textAlign:"center"}}>
-                          <T size={28} color={e.pct>60?"#10d9c4":e.pct>30?"#f59e0b":"#ef4444"} style={{fontFamily:"serif",fontWeight:300}}>{e.pct}%</T>
+                          <T size={28} color={e.pct>60?"#10d9c4":e.pct>30?"#38bdf8":"#ef4444"} style={{fontFamily:"serif",fontWeight:300}}>{e.pct}%</T>
                           <T size={11} color="var(--txt-mute)">energy</T>
                         </div>
                       </Card>
@@ -1929,6 +2025,282 @@ function ZebraHealth() {
 
 
         {/* EMERGENCY */}
+        {activeTab === "womens" && (
+          <div className="fade">
+            <H>Women's Health</H>
+
+            {/* Sub-tab nav */}
+            <div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto",paddingBottom:4}}>
+              {[["tracker","📅 Cycle Tracker"],["symptoms","🌸 Symptoms"],["guide","📖 Phase Guide"]].map(function([id,label]){return (
+                <button key={id} onClick={function(){setCycleView(id);}}
+                  style={{background:cycleView===id?"linear-gradient(135deg,#f472b6,#e879f9)":"var(--bg-card)",
+                    border:"1px solid "+(cycleView===id?"transparent":"var(--border)"),
+                    borderRadius:8,padding:"7px 14px",cursor:"pointer",
+                    color:cycleView===id?"#fff":"var(--txt-dim)",
+                    fontFamily:"sans-serif",fontSize:13,whiteSpace:"nowrap",fontWeight:cycleView===id?600:400}}>
+                  {label}
+                </button>
+              );})}
+            </div>
+
+            {/* ── CYCLE TRACKER ─────────────────────────────── */}
+            {cycleView === "tracker" && (
+              <div>
+                {/* Current cycle status */}
+                {period && (function(){
+                  const start = new Date(period);
+                  const today = new Date();
+                  const dayOfCycle = Math.floor((today - start) / 86400000) + 1;
+                  const phaseName = dayOfCycle <= 5 ? "Menstruation" : dayOfCycle <= 13 ? "Follicular" : dayOfCycle <= 16 ? "Ovulation" : dayOfCycle <= parseInt(cycle) ? "Luteal" : "Late / Next period due";
+                  const phaseColor = dayOfCycle <= 5 ? "#ef4444" : dayOfCycle <= 13 ? "#38bdf8" : dayOfCycle <= 16 ? "#f472b6" : "#a78bfa";
+                  const phaseDesc = dayOfCycle <= 5 ? "Rest and restore. Highest inflammation phase." : dayOfCycle <= 13 ? "Energy rising. Gradual reintroduction of gentle movement." : dayOfCycle <= 16 ? "Estrogen peaks — mast cells most reactive. Watch for flares." : dayOfCycle <= parseInt(cycle) ? "Progesterone phase. Symptoms may worsen as it drops." : "Period due soon. Low-histamine diet, rest, prepare.";
+                  const nextPeriod = new Date(start);
+                  nextPeriod.setDate(nextPeriod.getDate() + parseInt(cycle));
+                  const daysToNext = Math.ceil((nextPeriod - today) / 86400000);
+                  return (
+                    <div>
+                      <Card style={{marginBottom:12,borderColor:phaseColor+"60",background:phaseColor+"10"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                          <div>
+                            <T size={13} color="var(--txt-mute)" style={{marginBottom:2}}>Current phase</T>
+                            <T size={22} weight={700} color={phaseColor} style={{fontFamily:"serif"}}>{phaseName}</T>
+                            <T size={13} color="var(--txt-dim)" style={{marginTop:4}}>Day {dayOfCycle} of {cycle}</T>
+                          </div>
+                          <div style={{textAlign:"right"}}>
+                            <T size={11} color="var(--txt-mute)">Next period</T>
+                            <T size={14} weight={600} color={phaseColor}>{daysToNext > 0 ? "in "+daysToNext+" days" : "today / overdue"}</T>
+                          </div>
+                        </div>
+                        {/* Phase progress bar */}
+                        <div style={{height:6,background:"rgba(255,255,255,0.12)",borderRadius:3,marginBottom:8,overflow:"hidden"}}>
+                          <div style={{height:"100%",width:Math.min(100,(dayOfCycle/parseInt(cycle))*100)+"%",background:phaseColor,borderRadius:3,transition:"width 0.3s"}} />
+                        </div>
+                        <T size={12} style={{lineHeight:1.7,color:"var(--txt-dim)"}}>{phaseDesc}</T>
+                      </Card>
+
+                      {/* Phase markers */}
+                      <Card style={{marginBottom:12}}>
+                        <SubH>Cycle Map</SubH>
+                        <div style={{display:"flex",gap:3,marginBottom:8}}>
+                          {Array.from({length:parseInt(cycle)}).map(function(_,i){
+                            const d = i+1;
+                            const isToday = d === dayOfCycle;
+                            const col = d<=5?"#ef4444":d<=13?"#38bdf8":d<=16?"#f472b6":"#a78bfa";
+                            return (
+                              <div key={d} title={"Day "+d} style={{
+                                flex:1,height:isToday?20:12,borderRadius:2,
+                                background:isToday?col:col+"50",
+                                border:isToday?"2px solid "+col:"none",
+                                transition:"height 0.2s",
+                                minWidth:2
+                              }} />
+                            );
+                          })}
+                        </div>
+                        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                          {[["#ef4444","Days 1-5 Menstruation"],["#38bdf8","Days 6-13 Follicular"],["#f472b6","Days 14-16 Ovulation"],["#a78bfa","Days 17-28 Luteal"]].map(function([col,lbl]){return (
+                            <div key={lbl} style={{display:"flex",alignItems:"center",gap:4}}>
+                              <div style={{width:10,height:10,borderRadius:2,background:col}} />
+                              <T size={10} color="var(--txt-mute)">{lbl}</T>
+                            </div>
+                          );})}
+                        </div>
+                      </Card>
+                    </div>
+                  );
+                })()}
+
+                {/* Period settings */}
+                <Card style={{marginBottom:12}}>
+                  <SubH>📅 Period Settings</SubH>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                    <div>
+                      <Label>Last period start date</Label>
+                      <Inp type="date" value={period} onChange={function(e){setPeriod(e.target.value);}} />
+                    </div>
+                    <div>
+                      <Label>Average cycle length (days)</Label>
+                      <Inp type="number" min="21" max="45" value={cycle} onChange={function(e){setCycle(e.target.value);}} />
+                    </div>
+                  </div>
+                  <Btn onClick={function(){
+                    if(!period) return;
+                    const entry = {id:Date.now(),date:period,cycleLength:cycle,note:"Period logged"};
+                    setCycleLog(function(prev){return [entry].concat(prev);});
+                  }}>Log This Period</Btn>
+                </Card>
+
+                {/* Daily symptom log */}
+                <Card style={{marginBottom:12}}>
+                  <SubH>📝 Daily Cycle Symptom Log</SubH>
+                  <T size={12} color="var(--txt-mute)" style={{marginBottom:10}}>Track symptoms by cycle day to find patterns — especially the hormone-histamine connection.</T>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                    <div><Label>Date</Label><Inp type="date" value={cycleSym.date} onChange={function(e){setCycleSym(function(s){return {...s,date:e.target.value};});}} /></div>
+                    <div>
+                      <Label>Severity</Label>
+                      <Sel value={cycleSym.severity} onChange={function(e){setCycleSym(function(s){return {...s,severity:e.target.value};});}}>
+                        <option value="none">None</option>
+                        <option value="mild">Mild</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="severe">Severe</option>
+                      </Sel>
+                    </div>
+                  </div>
+                  <div style={{marginBottom:8}}>
+                    <Label>Symptoms today</Label>
+                    <Inp value={cycleSym.symptoms} onChange={function(e){setCycleSym(function(s){return {...s,symptoms:e.target.value};});}} placeholder="e.g. flushing, joint pain, brain fog, cramps..." />
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                    <div>
+                      <Label>Mood</Label>
+                      <Sel value={cycleSym.mood} onChange={function(e){setCycleSym(function(s){return {...s,mood:e.target.value};});}}>
+                        <option value="">Select...</option>
+                        <option value="good">Good</option>
+                        <option value="anxious">Anxious</option>
+                        <option value="irritable">Irritable</option>
+                        <option value="low">Low / Depressed</option>
+                        <option value="tearful">Tearful</option>
+                        <option value="neutral">Neutral</option>
+                      </Sel>
+                    </div>
+                    <div>
+                      <Label>Energy level</Label>
+                      <Sel value={cycleSym.energy} onChange={function(e){setCycleSym(function(s){return {...s,energy:e.target.value};});}}>
+                        <option value="">Select...</option>
+                        <option value="high">High</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="low">Low</option>
+                        <option value="crash">Crash / PEM</option>
+                      </Sel>
+                    </div>
+                  </div>
+                  <div style={{marginBottom:10}}>
+                    <Label>Notes</Label>
+                    <Inp value={cycleSym.notes} onChange={function(e){setCycleSym(function(s){return {...s,notes:e.target.value};});}} placeholder="Anything else worth noting..." />
+                  </div>
+                  <Btn onClick={function(){
+                    if(!cycleSym.date || !cycleSym.symptoms) return;
+                    const start = period ? new Date(period) : null;
+                    const entryDate = new Date(cycleSym.date);
+                    const cycleDay = start ? Math.floor((entryDate-start)/86400000)+1 : null;
+                    const entry = {...cycleSym, id:Date.now(), cycleDay:cycleDay};
+                    setCycleSymLog(function(prev){return [entry].concat(prev);});
+                    setCycleSym({date:"",day:"",symptoms:"",severity:"none",notes:"",mood:"",energy:""});
+                  }}>Save Entry</Btn>
+                </Card>
+
+                {/* Symptom log history */}
+                {cycleSymLog.length > 0 && (
+                  <div>
+                    <SubH>Symptom History</SubH>
+                    {cycleSymLog.map(function(e){
+                      const sevColor = e.severity==="none"?"#10d9c4":e.severity==="mild"?"#38bdf8":e.severity==="moderate"?"#38bdf8":"#ef4444";
+                      return (
+                        <Card key={e.id} style={{marginBottom:8,borderLeft:"3px solid "+sevColor}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                              <T size={13} weight={600} color="#f472b6">{e.date}</T>
+                              {e.cycleDay && <T size={11} color="var(--txt-mute)">Day {e.cycleDay}</T>}
+                            </div>
+                            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                              <span style={{fontSize:11,padding:"2px 7px",borderRadius:4,background:sevColor+"20",color:sevColor,fontWeight:600}}>{e.severity}</span>
+                              <Btn v="del" onClick={function(){setCycleSymLog(function(prev){return prev.filter(function(x){return x.id!==e.id;});});}}>✕</Btn>
+                            </div>
+                          </div>
+                          <T size={13}>{e.symptoms}</T>
+                          {(e.mood||e.energy) && <T size={12} color="var(--txt-mute)" style={{marginTop:3}}>{e.mood?"Mood: "+e.mood:""}{e.mood&&e.energy?" · ":""}{e.energy?"Energy: "+e.energy:""}</T>}
+                          {e.notes && <T size={12} color="var(--txt-mute)" style={{marginTop:2}}>{e.notes}</T>}
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Period history */}
+                {cycleLog.length > 0 && (
+                  <div style={{marginTop:12}}>
+                    <SubH>Period History</SubH>
+                    {cycleLog.map(function(e){return (
+                      <Card key={e.id} style={{marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div>
+                          <T size={14} weight={600} color="#f472b6">{e.date}</T>
+                          <T size={12} color="var(--txt-mute)">Cycle length: {e.cycleLength} days</T>
+                        </div>
+                        <Btn v="del" onClick={function(){setCycleLog(function(prev){return prev.filter(function(x){return x.id!==e.id;});});}}>Remove</Btn>
+                      </Card>
+                    );})}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── SYMPTOMS ──────────────────────────────────── */}
+            {cycleView === "symptoms" && (
+              <div>
+                <T size={13} style={{marginBottom:16}}>Tap any symptom card to expand causes and relief strategies. Conditions specific to women living with EDS, POTS, and MCAS.</T>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
+                  {COND_SYMPTOMS.WOMENS.map(function(s){return (
+                    <Card key={s.id} style={{borderColor:"rgba(244,114,182,0.25)",cursor:"pointer"}}
+                      onClick={function(){setSelSym(selSym&&selSym.id===s.id?null:s);}}>
+                      <div style={{fontSize:22,marginBottom:6}}>{s.icon}</div>
+                      <T size={14} weight={700} color="#f472b6" style={{marginBottom:6}}>{s.name}</T>
+                      <T size={12} style={{lineHeight:1.6,color:"var(--txt-dim)"}}>{s.causes[0]}.</T>
+                      {selSym&&selSym.id===s.id && (
+                        <div style={{marginTop:10}}>
+                          <div style={{marginBottom:8}}>
+                            <T size={11} color="#f472b6" style={{fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>Causes</T>
+                            {s.causes.map(function(c,i){return <T key={i} size={12} style={{marginBottom:3}}>• {c}</T>;})}
+                          </div>
+                          <div style={{marginBottom:8}}>
+                            <T size={11} color="#f472b6" style={{fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>Relief</T>
+                            {s.relief.map(function(r,i){return <T key={i} size={12} style={{marginBottom:3}}>• {r}</T>;})}
+                          </div>
+                          {s.yoga&&<div style={{padding:"8px 10px",background:"rgba(244,114,182,0.08)",borderRadius:8,borderLeft:"3px solid #f472b6"}}>
+                            <T size={11} color="#f472b6" style={{fontWeight:700,marginBottom:2}}>Yoga Therapy</T>
+                            <T size={12}>{s.yoga}</T>
+                          </div>}
+                        </div>
+                      )}
+                    </Card>
+                  );})}
+                </div>
+              </div>
+            )}
+
+            {/* ── PHASE GUIDE ───────────────────────────────── */}
+            {cycleView === "guide" && (
+              <div>
+                <Card style={{marginBottom:14,borderColor:"rgba(244,114,182,0.35)",background:"rgba(244,114,182,0.06)"}}>
+                  <SubH style={{color:"#f472b6"}}>🌸 The Hormone-Histamine Connection</SubH>
+                  <T size={13} style={{lineHeight:1.8}}>Estrogen stimulates mast cells to release histamine, and histamine stimulates estrogen production — a cycle that amplifies MCAS symptoms around ovulation and before menstruation. Progesterone has a stabilizing effect, which is why many women feel better mid-cycle and worse in the luteal phase. Tracking symptoms alongside your cycle is one of the most clinically useful things you can do.</T>
+                </Card>
+                {[
+                  {phase:"Days 1-5 — Menstruation",color:"#ef4444",icon:"🔴",diet:"Strictly low-histamine. Magnesium glycinate for cramps. Anti-inflammatory foods. Avoid alcohol completely.",yoga:"Restorative only — Supta Baddha Konasana, Yoga Nidra, Supported Savasana. No inversions during heavy flow.",mcas:"Highest mast cell reactivity of the cycle. Increase antihistamines if your protocol allows. Avoid triggers.",general:"Rest is a clinical prescription, not laziness. This is the highest inflammation phase. Protect your energy envelope."},
+                  {phase:"Days 6-13 — Follicular",color:"#38bdf8",icon:"🟠",diet:"Gradually liberalize diet as symptoms ease. Introduce fermented foods cautiously if tolerated. Increase protein for energy.",yoga:"Gradually reintroduce gentle active practices. Good time for breathwork and seated practices. Longer Nidra optional.",mcas:"Symptom burden typically lighter. Good time for new activities within your envelope. Watch for ovulation surge at day 12-13.",general:"Energy and cognitive function often best in this phase. Schedule demanding tasks and appointments here when possible."},
+                  {phase:"Days 14-16 — Ovulation",color:"#f472b6",icon:"🩷",diet:"Low-histamine diet even if feeling well — estrogen peaks here and mast cells are most reactive. Avoid alcohol.",yoga:"Shorter, gentler practices even if energy feels high. This is not the time to push. Monitor for flushing and hives.",mcas:"Estrogen peak = highest mast cell degranulation risk. Antihistamines as per your protocol. Watch for flushing, hives, GI symptoms.",general:"Many women feel good here but overdo it — the estrogen high is real but the mast cell reactivity is also highest. Pace carefully."},
+                  {phase:"Days 17-28 — Luteal",color:"#a78bfa",icon:"🟣",diet:"Strictest low-histamine phase. Magnesium glycinate daily. No alcohol. Increase quercetin-rich foods if tolerated.",yoga:"Yoga Nidra daily. Reduce exertion progressively. Restorative from day 24 onward. Prioritize sleep.",mcas:"Progesterone rises then falls — the fall triggers histamine release. Symptoms typically worsen days 21-28. Prepare your protocol.",general:"Prepare your environment for the menstrual phase before it arrives. Reduce commitments in the final 5 days if possible."},
+                ].map(function(p){return (
+                  <Card key={p.phase} style={{marginBottom:12,borderLeft:"4px solid "+p.color}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                      <span style={{fontSize:20}}>{p.icon}</span>
+                      <T size={16} weight={700} color={p.color} style={{fontFamily:"serif"}}>{p.phase}</T>
+                    </div>
+                    {[["🥗 Diet",p.diet],["🧘 Yoga",p.yoga],["🌿 MCAS",p.mcas],["💡 General",p.general]].map(function([lbl,text]){return (
+                      <div key={lbl} style={{marginBottom:8}}>
+                        <T size={11} color={p.color} style={{fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:3}}>{lbl}</T>
+                        <T size={12} style={{lineHeight:1.7}}>{text}</T>
+                      </div>
+                    );})}
+                  </Card>
+                );})}
+              </div>
+            )}
+
+          </div>
+        )}
+
+
+
         {activeTab === "emergency" && (
           <div className="fade">
             <H>Emergency Protocol Card</H>
@@ -2209,8 +2581,8 @@ function ZebraHealth() {
               <T size={13} color="var(--txt-dim)">{selYoga.benefits}</T>
             </div>
             {selYoga.contra && !selYoga.contra.startsWith("None") && (
-              <div style={{background:"rgba(245,158,11,0.18)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:14}}>
-                <T size={12} color="#f59e0b">⚠ {selYoga.contra}</T>
+              <div style={{background:"rgba(56,189,248,0.18)",border:"1px solid rgba(56,189,248,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:14}}>
+                <T size={12} color="#38bdf8">⚠ {selYoga.contra}</T>
               </div>
             )}
             {selYoga.mods && (
