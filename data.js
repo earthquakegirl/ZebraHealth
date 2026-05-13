@@ -1,3 +1,4 @@
+// Zebra Health EDS Tracker — data.js v2
 const { useState, useRef, useCallback } = React;
 
 // ─── LOCAL STORAGE LAYER ──────────────────────────────────────
@@ -204,9 +205,7 @@ const COND_SYMPTOMS = {
     { id:"sensory_lc", name:"Sensory Sensitivities", icon:"✨", causes:["CNS sensitization","Neuroinflammation","Autonomic dysfunction","Mast cell involvement","Histamine effect on sensory nerves"], relief:["Reduce sensory load — quiet dark environment","Ear protection if sound-sensitive","Blue light glasses","Remove synthetic fragrances","Nervous system regulation practices"], yoga:"Very gentle sensory-reduced practice; Yoga Nidra with minimal instruction; silent meditation" },
   ],
 };
-const ALL_SYMPTOMS = [...COND_SYMPTOMS.EDS, ...COND_SYMPTOMS.POTS, ...COND_SYMPTOMS.MCAS, ...COND_SYMPTOMS.WOMENS, ...COND_SYMPTOMS.LC];
-
-const ALL_SYMPTOMS = [...COND_SYMPTOMS.EDS, ...COND_SYMPTOMS.POTS, ...COND_SYMPTOMS.MCAS];
+const ALL_SYMPTOMS = [...COND_SYMPTOMS.EDS, ...COND_SYMPTOMS.POTS, ...COND_SYMPTOMS.MCAS, ...(COND_SYMPTOMS.WOMENS||[]), ...(COND_SYMPTOMS.LC||[])];
 
 const MCAS_FOODS = {
   high_histamine:{label:"High Histamine",icon:"🔴",color:"#ef4444",note:"Contain significant histamine. Tolerance varies — track your personal responses.",subcats:{"Aged & Fermented Dairy":["Aged cheeses (cheddar, gouda, parmesan, swiss, brie, camembert, blue cheese, feta)","Yogurt","Kefir","Sour cream","Buttermilk","Cream cheese (aged)"],"Fermented Foods":["Sauerkraut","Kimchi","Kombucha","Miso","Tempeh","Natto","Pickles","All fermented vegetables","Sourdough bread","All vinegars","Soy sauce","Tamari","Fish sauce","Worcestershire sauce"],"Alcohol":["Red wine (highest)","White wine","Champagne","Beer","Hard cider","Spirits","Non-alcoholic wine and beer (still contains histamine)"],"Fish & Seafood":["Canned tuna","Canned salmon","Canned sardines","Anchovies","Canned mackerel","Smoked salmon","All smoked fish","Dried fish","Shellfish","Any fish not eaten immediately after cooking"],"Processed & Cured Meats":["Salami","Pepperoni","Prosciutto","Bacon","Ham","Hot dogs","Cured sausage","Deli meats","All smoked meats","Jerky"],"Condiments & Sauces":["Ketchup","Prepared mustard","Mayonnaise","Relish","Chili sauce","BBQ sauce","Tomato paste","Sun-dried tomatoes","Olives","Capers"],"Other":["Leftovers over 24 hours (histamine rises rapidly in cooked protein)","Yeast extract — Marmite and Vegemite","Nutritional yeast","Bone broth (long-cooked)","Spinach","Eggplant","Avocado","Tomatoes"]}},

@@ -1,3 +1,4 @@
+// Zebra Health EDS Tracker — app.jsx v2
 function Card({ children, style, onClick }) {
   return (
     <div onClick={onClick} style={{
