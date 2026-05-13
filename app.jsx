@@ -97,7 +97,7 @@ function Chips({ items, selected, onSelect, getColor }) {
 }
 
 function condColor(c) {
-  return c==="EDS"?"#c4b5fd":c==="POTS"?"#06b6d4":c==="MCAS"?"#fb923c":c==="WOMENS"?"#f472b6":c==="LC"?"#34d399":"#94a3b8";
+  return c==="EDS"?"#c4b5fd":c==="POTS"?"#06b6d4":c==="MCAS"?"#e879f9":c==="WOMENS"?"#f472b6":c==="LC"?"#34d399":"#94a3b8";
 }
 
 function yogaSteps(y) {
@@ -682,7 +682,7 @@ function ZebraHealth() {
             <H>Symptom Tracker</H>
             <T size={13} style={{marginBottom:16}}>Tap any symptom to log it. Tap info for causes and yoga protocols.</T>
 
-            {[["EDS","#c4b5fd","Ehlers-Danlos Syndrome"],["POTS","#06b6d4","POTS / Dysautonomia"],["MCAS","#fb923c","Mast Cell Activation"],["WOMENS","#f472b6","Women's Health"],["LC","#34d399","Long COVID"]].map(function(item){ var cond=item[0],color=item[1],label=item[2]; return (
+            {[["EDS","#c4b5fd","Ehlers-Danlos Syndrome"],["POTS","#06b6d4","POTS / Dysautonomia"],["MCAS","#e879f9","Mast Cell Activation"],["WOMENS","#f472b6","Women's Health"],["LC","#34d399","Long COVID"]].map(function(item){ var cond=item[0],color=item[1],label=item[2]; return (
               <div key={cond} style={{marginBottom:22}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
                   <div style={{width:4,height:20,background:color,borderRadius:2}} />
@@ -1245,9 +1245,9 @@ function ZebraHealth() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
                   {YOGA.filter(y=>(yogaCat==="All"||y.cat===yogaCat)&&(yogaCond==="All"||y.conds.includes(yogaCond))).map(y=>{
                     const isFav=favorites.includes(y.name);
-                    const catClr=y.cat==="Breathwork"?"#88d0f0":y.cat==="Supine Poses"?"#c4b5fd":y.cat==="Seated Poses"?"var(--txt-accent)":y.cat==="Restorative Poses"?"#10d9c4":y.cat==="Gentle Movement"?"#38bdf8":"#fb923c";
+                    const catClr=y.cat==="Breathwork"?"#88d0f0":y.cat==="Supine Poses"?"#c4b5fd":y.cat==="Seated Poses"?"var(--txt-accent)":y.cat==="Restorative Poses"?"#10d9c4":y.cat==="Gentle Movement"?"#38bdf8":"#e879f9";
                     return (
-                      <Card key={y.name} style={{borderColor:isFav?"rgba(245,208,80,0.50)":"var(--border)"}}>
+                      <Card key={y.name} style={{borderColor:isFav?"rgba(167,139,250,0.50)":"var(--border)"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
                           <span style={{fontFamily:"sans-serif",fontSize:10,color:catClr,background:catClr+"18",border:"1px solid "+catClr+"30",borderRadius:100,padding:"2px 8px",textTransform:"uppercase",letterSpacing:"0.5px"}}>{y.cat}</span>
                           <button onClick={()=>setFavorites(f=>isFav?f.filter(n=>n!==y.name):[...f,y.name])}
