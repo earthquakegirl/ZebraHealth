@@ -559,7 +559,7 @@ function ZebraHealth() {
       {/* HEADER */}
       <div style={{background:"var(--bg-header)",borderBottom:"1px solid var(--border)",padding:"14px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
         <div>
-          <div style={{fontSize:24,fontWeight:300,letterSpacing:1,color:"var(--txt-accent)"}}>✦ Zebra Health</div>
+          <div style={{fontSize:24,fontWeight:300,letterSpacing:1,color:"#c4b5fd"}}>✦ Zebra Health</div>
           <div style={{fontFamily:"sans-serif",fontSize:12,color:"#93c5fd",marginTop:2}}>EDS · POTS · MCAS Tracker</div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
